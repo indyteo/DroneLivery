@@ -55,12 +55,11 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	protected override void Awake() {
-		this.DestroyAllBackObject();
 		base.Awake();
 		this.start = this.droneContainer.position;
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
-		EventManager.Instance.AddListener<DeliverEndEvent>(this.OnDeliverEnd);
+		EventManager.Instance.AddListener<DeliverEvent>(this.OnDeliver);
 		EventManager.Instance.AddListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
@@ -94,16 +93,17 @@ public class LevelManager : Singleton<LevelManager> {
 	private void OnDestroy() {
 		EventManager.Instance.RemoveListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.RemoveListener<DeliverStartEvent>(this.OnDeliverStart);
-		EventManager.Instance.RemoveListener<DeliverEndEvent>(this.OnDeliverEnd);
+		EventManager.Instance.RemoveListener<DeliverEvent>(this.OnDeliver);
 		EventManager.Instance.RemoveListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
 	private void OnGamePlay(GamePlayEvent e) {
-		this.generatedUntil = Vector3.zero;
 		this.Crashing = false;
 		this.meters = 0;
 		this.delivered = 0;
+		this.delivering = false;
 		this.droneContainer.position = this.start;
+		this.DestroyAllFeatures();
 		Instantiate(Resources.Load<GameObject>("Drone"), this.droneContainer);
 		EventManager.Instance.Raise(new DroneSpawnedEvent(this.droneTarget));
 	}
@@ -115,34 +115,32 @@ public class LevelManager : Singleton<LevelManager> {
 		this.delivering = true;
 	}
 
-	private void OnDeliverEnd(DeliverEndEvent e) {
-		this.delivering = false;
-		if (e.Success)
+	private void OnDeliver(DeliverEvent e) {
+		if (this.delivering) {
+			this.delivering = false;
 			this.delivered++;
+			e.Success = true;
+		}
 	}
 
 	private void OnDroneCrashEvent(DroneCrashedEvent e) {
 		EventManager.Instance.Raise(new GameOverEvent(Mathf.RoundToInt(this.meters), this.delivered));
 	}
 
-	private bool IsBackObject(GameObject gameObject) {
-		return gameObject.transform.position.z+10 < this.droneTarget.position.z;
+	private bool IsBackObject(GameObject obj) {
+		return Vector3.Dot(this.direction, obj.transform.position + 10 * this.direction - this.droneTarget.position) < 0;
 	}
 
 	private void DeleteBackObject() {
-		foreach (var o in this.features) {
-			if (IsBackObject(o)) Destroy(o);
-		}
+		foreach (var o in this.features)
+			if (IsBackObject(o))
+				Destroy(o);
 		this.features.RemoveAll(IsBackObject);
 	}
 
-	private void DestroyAllBackObject()
-	{
+	private void DestroyAllFeatures() {
 		foreach (var o in this.features)
-		{
 			Destroy(o);
-		}
-
 		this.features.Clear();
 		this.generatedUntil = Vector3.zero;
 	}
