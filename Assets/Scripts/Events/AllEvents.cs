@@ -35,13 +35,15 @@ namespace Events {
 
 	#region Gameplay Events
 
-	public class DeliverEvent : Event {
-		public bool Success { get; set; }
-	}
-
-	public class DeliverStartEvent : Event {
+	public class DeliveryTakeEvent : Event {
 		public bool CanTake { get; set; }
 	}
+
+	public class DeliveryDropEvent : Event {
+		public bool CanDrop { get; set; }
+	}
+
+	public class DeliverStartEvent : Event {}
 
 	public class DeliverEndEvent : Event {
 		public bool Success { get; private set; }

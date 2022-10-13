@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class Drone : MonoBehaviour {
 	[SerializeField] private float moveSpeed = 1.5f;
+	[SerializeField] private float rotationSpeed = 100f;
+	[SerializeField] private GameObject deliveryModel;
 
 	private bool spawned;
 	private Transform target;
+	private GameObject delivery;
 
 	public bool TargetLocked { get; set; }
 	public bool CanMove { get; set; } = true;
@@ -17,7 +20,6 @@ public class Drone : MonoBehaviour {
 	public static float Sensitivity { get; set; } = 1;
 
 	private void Crash() {
-		SfxManager.Instance.StopDroneSound();
 		EventManager.Instance.Raise(new DroneCrashedEvent());
 		DestroyImmediate(this.gameObject);
 	}
@@ -25,6 +27,8 @@ public class Drone : MonoBehaviour {
 	private void Awake() {
 		this.rigidbody = this.GetComponent<Rigidbody>();
 		EventManager.Instance.AddListener<DroneSpawnedEvent>(this.OnDroneSpawned);
+		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
+		EventManager.Instance.AddListener<DeliverEndEvent>(this.OnDeliverEnd);
 		EventManager.Instance.AddListener<GameAbortedEvent>(this.OnGameAborted);
 	}
 
@@ -34,6 +38,8 @@ public class Drone : MonoBehaviour {
 
 	protected virtual void OnDestroy() {
 		EventManager.Instance.RemoveListener<DroneSpawnedEvent>(this.OnDroneSpawned);
+		EventManager.Instance.RemoveListener<DeliverStartEvent>(this.OnDeliverStart);
+		EventManager.Instance.RemoveListener<DeliverEndEvent>(this.OnDeliverEnd);
 		EventManager.Instance.RemoveListener<GameAbortedEvent>(this.OnGameAborted);
 	}
 
@@ -56,12 +62,25 @@ public class Drone : MonoBehaviour {
 
 		// Calculate move & rotation
 		Vector3 moveToTarget = nextTargetPos - this.transform.position;
-		Vector3 moveVect = Time.fixedDeltaTime * (this.CanMove ? this.moveSpeed : 0) * Vector3.ProjectOnPlane(moveToTarget, Vector3.forward).normalized;
+		Vector3 moveVect = (this.CanMove ? Time.fixedDeltaTime * (this.moveSpeed + LevelManager.Instance.Speed * 0.2f) : 0) * Vector3.ProjectOnPlane(moveToTarget, Vector3.forward).normalized;
 		if (moveVect.magnitude > moveToTarget.magnitude)
 			moveVect = moveToTarget;
 
+		// Visual rotation from movement
+		float targetAngle = -15 * moveVect.x / Time.fixedDeltaTime;
+		float currentAngle = this.transform.localEulerAngles.z;
+		if (currentAngle > 180)
+			currentAngle -= 360;
+		float rotateToAngle = targetAngle - currentAngle;
+		float rotation = this.CanMove ? Mathf.Sign(rotateToAngle) * Time.fixedDeltaTime * this.rotationSpeed : 0;
+		rotation = Mathf.Clamp(rotation, -Mathf.Abs(rotateToAngle), Mathf.Abs(rotateToAngle));
+		float nextAngle = Mathf.Clamp(currentAngle + rotation, -45, 45);
+		if (nextAngle < 0)
+			nextAngle += 360;
+
 		// Apply them
 		this.transform.position += moveVect;
+		this.transform.localEulerAngles = new Vector3(0, 0, nextAngle);
 
 		// Sound
 		SfxManager.Instance.SetDroneFly(moveVect.magnitude > MOVE_EPSILON);
@@ -76,8 +95,20 @@ public class Drone : MonoBehaviour {
 		this.spawned = true;
 	}
 
+	private void OnDeliverStart(DeliverStartEvent e) {
+		if (this.delivery == null)
+			this.delivery = Instantiate(this.deliveryModel, this.transform);
+	}
+
+	private void OnDeliverEnd(DeliverEndEvent e) {
+		if (this.delivery != null)
+			Destroy(this.delivery);
+	}
+
 	private void OnCollisionEnter(Collision collision) {
 		if (!collision.collider.isTrigger) {
+			Instantiate(Resources.Load<GameObject>("Crash"), collision.GetContact(0).point, Quaternion.identity, this.transform);
+			SfxManager.Instance.StopDroneSound();
 			SfxManager.Instance.PlaySfx2D("Crash");
 			this.CanMove = false;
 			this.TargetLocked = true;

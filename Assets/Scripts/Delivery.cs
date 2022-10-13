@@ -7,17 +7,18 @@ public class Delivery : MonoBehaviour {
 
 	private void OnTriggerEnter(Collider other) {
 		if (this.end) {
-			DeliverEvent deliverEvent = new DeliverEvent();
-			EventManager.Instance.Raise(deliverEvent);
-			if (deliverEvent.Success) {
+			DeliveryDropEvent deliveryDropEvent = new DeliveryDropEvent();
+			EventManager.Instance.Raise(deliveryDropEvent);
+			if (deliveryDropEvent.CanDrop) {
 				EventManager.Instance.Raise(new DeliverEndEvent(true));
 				SfxManager.Instance.PlaySfx2D("DeliverSuccess");
 				Destroy(this.gameObject);
 			}
 		} else {
-			DeliverStartEvent deliverStartEvent = new DeliverStartEvent();
-	        EventManager.Instance.Raise(deliverStartEvent);
-	        if (deliverStartEvent.CanTake) {
+			DeliveryTakeEvent deliveryTakeEvent = new DeliveryTakeEvent();
+	        EventManager.Instance.Raise(deliveryTakeEvent);
+	        if (deliveryTakeEvent.CanTake) {
+		        EventManager.Instance.Raise(new DeliverStartEvent());
         		SfxManager.Instance.PlaySfx2D("DeliverStart");
         		Destroy(this.gameObject);
 	        }
