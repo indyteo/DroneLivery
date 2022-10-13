@@ -6553,7 +6553,7 @@ MonoBehaviour:
   drone: {fileID: 8747868684682301895, guid: 7ae3c170124e2af40bd228c9ff885588, type: 3}
   droneDelivery: {fileID: 5485620484511120470, guid: e8f8282ffac9de047b0ca1a675529dc3, type: 3}
   chair: {fileID: 2552729178111649079, guid: 253b33edf96da654b80218336673ee25, type: 3}
-  tree: {fileID: 735328443029900014, guid: 968496a7a88755649806e54c708707e7, type: 3}
+  tree: {fileID: 735328443029900014, guid: b9c937be049749f45b1506c2121e849b, type: 3}
   bridge: {fileID: 0}
 --- !u!1 &1892601245
 GameObject:
