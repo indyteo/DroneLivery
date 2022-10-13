@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028334, g: 0.22571328, b: 0.3069217, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2659,8 +2659,8 @@ MonoBehaviour:
   audioSourceModel: {fileID: 1942341376}
   backgroundMusic: {fileID: 1140384915}
   droneSound: {fileID: 1971254579}
-  droneVolume: 0.075
-  droneFlyVolume: 0.15
+  droneVolume: 0.5
+  droneFlyVolume: 0.7
 --- !u!1 &629135607
 GameObject:
   m_ObjectHideFlags: 0
@@ -4724,7 +4724,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 99fdfaf9e8f079846807c7681de05393, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.05
+  m_Volume: 0.516
   m_Pitch: 1
   Loop: 1
   Mute: 0
