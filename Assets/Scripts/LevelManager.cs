@@ -36,12 +36,14 @@ public class LevelManager : MonoBehaviour {
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
 		EventManager.Instance.AddListener<DeliverEndEvent>(this.OnDeliverEnd);
+		EventManager.Instance.AddListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
 	private void OnDestroy() {
 		EventManager.Instance.RemoveListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.RemoveListener<DeliverStartEvent>(this.OnDeliverStart);
 		EventManager.Instance.RemoveListener<DeliverEndEvent>(this.OnDeliverEnd);
+		EventManager.Instance.RemoveListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
 	private void OnGamePlay(GamePlayEvent e) {
@@ -60,4 +62,9 @@ public class LevelManager : MonoBehaviour {
 		if (e.Success)
 			this.delivered++;
 	}
+
+	private void OnDroneCrashEvent(DroneCrashedEvent e) {	
+		EventManager.Instance.Raise(new GameOverEvent(GameManager.ComputeScore(this.delivered, this.meters)));
+	}
+	
 }

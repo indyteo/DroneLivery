@@ -1475,7 +1475,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '00 : 00'
+  m_Text: 00:00:00
 --- !u!222 &352403947
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -5807,7 +5807,8 @@ MonoBehaviour:
   metersText: {fileID: 1290705141}
   deliveredText: {fileID: 201831607}
   deliveringIndicator: {fileID: 1050925080}
-  timerText: {fileID: 0}
+  timerText: {fileID: 352403946}
+  scoreInGameText: {fileID: 1259429745}
 --- !u!1 &1570345763
 GameObject:
   m_ObjectHideFlags: 0
