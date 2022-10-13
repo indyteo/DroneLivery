@@ -21,6 +21,8 @@ public class GameManager : Singleton<GameManager> {
 	[SerializeField] private Text sensitivityText;
 	[Header("End Overlay")]
 	[SerializeField] private GameObject endOverlay;
+	[SerializeField] private Text metersText;
+	[SerializeField] private Text deliveredText;
 	[SerializeField] private Text scoreText;
 	[SerializeField] private Text highScoreText;
 	[SerializeField] private GameObject newHighScore;
@@ -33,6 +35,8 @@ public class GameManager : Singleton<GameManager> {
 	[SerializeField] private Button menuButton;
 	
 	private GameState gameState;
+
+	public bool IsPlaying => this.gameState == GameState.Play;
 
 	public int HighScore {
 		get => PlayerPrefs.GetInt("HighScore", 0);
@@ -116,9 +120,11 @@ public class GameManager : Singleton<GameManager> {
 		EventManager.Instance.Raise(new GamePlayEvent());
 	}
 
-	private void End(int score, bool isNewHighScore) {
+	private void End(int meters, int delivered, int score, bool isNewHighScore) {
 		this.gameState = GameState.End;
-		this.scoreText.text = $"High Score {score}";
+		this.metersText.text = meters.ToString();
+		this.deliveredText.text = delivered.ToString();
+		this.scoreText.text = $"Score {score}";
 		this.highScoreText.gameObject.SetActive(!isNewHighScore);
 		this.highScoreText.text = $"High Score {this.HighScore}";
 		this.newHighScore.SetActive(isNewHighScore);
@@ -148,10 +154,13 @@ public class GameManager : Singleton<GameManager> {
 
 	private void Restart() {
 		this.pauseOverlay.SetActive(false);
+		EventManager.Instance.Raise(new GameAbortedEvent());
 		this.Play();
 	}
 
 	private void Menu() {
+		if (this.gameState == GameState.Pause)
+			EventManager.Instance.Raise(new GameAbortedEvent());
 		this.gameState = GameState.TitleScreen;
 		this.pauseOverlay.SetActive(false);
 		this.titleScreen.SetActive(true);
@@ -178,10 +187,11 @@ public class GameManager : Singleton<GameManager> {
 	}
 
 	private void OnGameOver(GameOverEvent e) {
-		bool isNewHighScore = e.Score > this.HighScore;
+		int score = ComputeScore(e.Meters, e.Delivered);
+		bool isNewHighScore = score > this.HighScore;
 		if (isNewHighScore)
-			this.HighScore = e.Score;
-		this.End(e.Score, isNewHighScore);
+			this.HighScore = score;
+		this.End(e.Meters, e.Delivered, score, isNewHighScore);
 	}
 
 	public static void LockCursor() {
@@ -194,7 +204,7 @@ public class GameManager : Singleton<GameManager> {
 		Cursor.visible = true;
 	}
 
-	public static int ComputeScore(int package, int meter) {
-		return (package * 10) + meter;
+	public static int ComputeScore(int meters, int delivered) {
+		return meters + 10 * delivered;
 	}
 }

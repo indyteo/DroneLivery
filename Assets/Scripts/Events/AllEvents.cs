@@ -6,12 +6,16 @@ namespace Events {
 	public class GamePlayEvent : Event {}
 
     public class GameOverEvent : Event {
-    	public int Score { get; private set; }
+    	public int Meters { get; private set; }
+    	public int Delivered { get; private set; }
 
-    	public GameOverEvent(int score) {
-    		this.Score = score;
-    	}
+    	public GameOverEvent(int meters, int delivered) {
+    		this.Meters = meters;
+            this.Delivered = delivered;
+        }
     }
+
+    public class GameAbortedEvent : Event {}
 
 	#endregion
 

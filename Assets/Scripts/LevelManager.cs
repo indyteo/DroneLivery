@@ -1,19 +1,33 @@
-﻿using Events;
+﻿using System.Collections.Generic;
+using Common;
+using Events;
 using UnityEngine;
 
-public class LevelManager : MonoBehaviour {
+public class LevelManager : Singleton<LevelManager> {
+	[Header("LevelManager")]
 	[SerializeField] private Transform droneContainer;
 	[SerializeField] private Transform droneTarget;
+	[SerializeField] private int generateNSections = 10;
 
-	private int _meters;
+	[SerializeField] private GameObject road;
+
+	public bool Crashing { get; set; }
+
+	private float _meters;
 	private int _delivered;
 	private bool _delivering;
 
-	private int meters {
+	private Vector3 start;
+	private float speed = 0.5f;
+	private Vector3 direction = Vector3.forward;
+	private Vector3 generatedUntil;
+	private List<GameObject> roads = new List<GameObject>();
+
+	private float meters {
 		get => this._meters;
 		set {
 			this._meters = value;
-			EventManager.Instance.Raise(new MetersUpdatedEvent(value));
+			EventManager.Instance.Raise(new MetersUpdatedEvent(Mathf.RoundToInt(value)));
 		}
 	}
 
@@ -33,11 +47,30 @@ public class LevelManager : MonoBehaviour {
 		}
 	}
 
-	protected void Awake() {
+	protected override void Awake() {
+		base.Awake();
+		this.start = this.droneContainer.position;
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
 		EventManager.Instance.AddListener<DeliverEndEvent>(this.OnDeliverEnd);
 		EventManager.Instance.AddListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
+	}
+
+	private void Update() {
+		if (this.Crashing || !GameManager.Instance.IsPlaying)
+			return;
+		
+		// Move forward
+		Vector3 move = Time.deltaTime * this.speed * this.direction;
+		this.droneContainer.position += move;
+		this.meters += move.magnitude;
+		
+		// Generate terrain
+		Vector3 nextGeneration = this.generatedUntil + this.direction * 3;
+		if ((this.droneContainer.position - nextGeneration).sqrMagnitude < (this.generateNSections * this.generateNSections * 9)) {
+			Instantiate(this.road, nextGeneration, Quaternion.identity);
+			this.generatedUntil = nextGeneration;
+		}
 	}
 
 	private void OnDestroy() {
@@ -48,8 +81,10 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	private void OnGamePlay(GamePlayEvent e) {
+		this.Crashing = false;
 		this.meters = 0;
 		this.delivered = 0;
+		this.droneContainer.position = this.start;
 		Instantiate(Resources.Load<GameObject>("Drone"), this.droneContainer);
 		EventManager.Instance.Raise(new DroneSpawnedEvent(this.droneTarget));
 	}
@@ -64,8 +99,7 @@ public class LevelManager : MonoBehaviour {
 			this.delivered++;
 	}
 
-	private void OnDroneCrashEvent(DroneCrashedEvent e) {	
-		EventManager.Instance.Raise(new GameOverEvent(GameManager.ComputeScore(this.delivered, this.meters)));
+	private void OnDroneCrashEvent(DroneCrashedEvent e) {
+		EventManager.Instance.Raise(new GameOverEvent(Mathf.RoundToInt(this.meters), this.delivered));
 	}
-	
 }

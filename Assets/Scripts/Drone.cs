@@ -8,7 +8,7 @@ public class Drone : MonoBehaviour {
 	private bool spawned;
 	private Transform target;
 
-	public bool TargetLocked { get; set; } = false;
+	public bool TargetLocked { get; set; }
 	public bool CanMove { get; set; } = true;
 
 	public new Rigidbody rigidbody { get; private set; }
@@ -21,13 +21,14 @@ public class Drone : MonoBehaviour {
 	private void Crash() {
 		SfxManager.Instance.StopDroneSound();
 		EventManager.Instance.Raise(new DroneCrashedEvent());
-		Destroy(this.gameObject);
+		DestroyImmediate(this.gameObject);
 	}
 
 	private void Awake() {
 		this.rigidbody = this.GetComponent<Rigidbody>();
 		//this.collider = this.GetComponent<CapsuleCollider>();
 		EventManager.Instance.AddListener<DroneSpawnedEvent>(this.OnDroneSpawned);
+		EventManager.Instance.AddListener<GameAbortedEvent>(this.OnGameAborted);
 	}
 
 	private void Start() {
@@ -36,6 +37,7 @@ public class Drone : MonoBehaviour {
 
 	protected virtual void OnDestroy() {
 		EventManager.Instance.RemoveListener<DroneSpawnedEvent>(this.OnDroneSpawned);
+		EventManager.Instance.RemoveListener<GameAbortedEvent>(this.OnGameAborted);
 	}
 
 	private void FixedUpdate() {
@@ -68,7 +70,8 @@ public class Drone : MonoBehaviour {
 		//Quaternion qOrientSlightlyUpright = Quaternion.Slerp(this.transform.rotation, qRotUpright * this.transform.rotation, this.yRecoveryStrengh * Time.fixedDeltaTime);
 
 		// Apply them
-		this.rigidbody.MovePosition(this.rigidbody.position + moveVect);
+		this.transform.position += moveVect;
+		//this.rigidbody.MovePosition(this.rigidbody.position + moveVect);
 		//this.rigidbody.MoveRotation(qRot * qOrientSlightlyUpright);
 		//this.rigidbody.angularVelocity = Vector3.zero;
 
@@ -89,7 +92,13 @@ public class Drone : MonoBehaviour {
 		if (!collision.collider.isTrigger) {
 			SfxManager.Instance.PlaySfx2D("Crash");
 			this.CanMove = false;
+			this.TargetLocked = true;
+			LevelManager.Instance.Crashing = true;
 			this.Invoke("Crash", 3.5f);
 		}
+	}
+
+	private void OnGameAborted(GameAbortedEvent e) {
+		DestroyImmediate(this.gameObject);
 	}
 }
