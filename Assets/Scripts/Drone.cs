@@ -14,7 +14,7 @@ public class Drone : MonoBehaviour {
 	public new Rigidbody rigidbody { get; private set; }
 	//public new CapsuleCollider collider { get; private set; }
 
-	private static readonly float MOVE_EPSILON = 0.001f;
+	private static readonly float MOVE_EPSILON = 0.0001f;
 	//private static readonly float ROTATION_EPSILON = 0.001f;
 	public static float Sensitivity { get; set; } = 1;
 
@@ -76,7 +76,9 @@ public class Drone : MonoBehaviour {
 		//this.rigidbody.angularVelocity = Vector3.zero;
 
 		// Sound
+		
 		SfxManager.Instance.SetDroneFly(moveVect.sqrMagnitude > MOVE_EPSILON);
+		Debug.Log(moveVect.sqrMagnitude > MOVE_EPSILON);
 	}
 
 	private void OnDroneSpawned(DroneSpawnedEvent e) {
