@@ -134,6 +134,7 @@ public class GameManager : Singleton<GameManager> {
 		Time.timeScale = 0;
 		UnlockCursor();
 		SfxManager.Instance.HaltBackgroundMusic();
+		SfxManager.Instance.HaltDroneSound();
 	}
 
 	private void Resume() {
@@ -141,7 +142,8 @@ public class GameManager : Singleton<GameManager> {
 		this.pauseOverlay.SetActive(false);
 		Time.timeScale = 1;
 		LockCursor();
-		SfxManager.Instance.StartBackgroundMusic();
+		SfxManager.Instance.ResumeBackgroundMusic();
+		SfxManager.Instance.ResumeDroneSound();
 	}
 
 	private void Restart() {

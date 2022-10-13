@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class LevelManager : MonoBehaviour {
 	[SerializeField] private Transform droneContainer;
+	[SerializeField] private Transform droneTarget;
 
 	private int _meters;
 	private int _delivered;
@@ -48,7 +49,7 @@ public class LevelManager : MonoBehaviour {
 		this.meters = 0;
 		this.delivered = 0;
 		Instantiate(Resources.Load<GameObject>("Drone"), this.droneContainer);
-		EventManager.Instance.Raise(new DroneSpawnedEvent());
+		EventManager.Instance.Raise(new DroneSpawnedEvent(this.droneTarget));
 	}
 
 	private void OnDeliverStart(DeliverStartEvent e) {
