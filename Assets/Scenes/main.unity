@@ -14,7 +14,7 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
-  m_Fog: 0
+  m_Fog: 1
   m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   m_FogMode: 3
   m_FogDensity: 0.01
@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000000, guid: a70982482138c7e4e8caeb5f1ee560f8, type: 2}
   m_LightingSettings: {fileID: 0}
 --- !u!196 &4
 NavMeshSettings:
@@ -1599,6 +1599,89 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 500, y: 400}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &371684132
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 371684133}
+  - component: {fileID: 371684135}
+  - component: {fileID: 371684134}
+  m_Layer: 0
+  m_Name: Quad
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &371684133
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 371684132}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 3, y: 6, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 839521005}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!23 &371684134
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 371684132}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 682d02d64a7e1074d863616fc3294ff1, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &371684135
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 371684132}
+  m_Mesh: {fileID: 10210, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &391219418
 GameObject:
   m_ObjectHideFlags: 0
@@ -2558,7 +2641,7 @@ MonoBehaviour:
   doNotDestroyGameObjectOnLoad: 0
   sfxXmlSetup: {fileID: 4900000, guid: 0b9ea4179bf6e0540900d873103befaf, type: 3}
   resourcesFolderName: Sfx
-  nAudioSources: 5
+  nAudioSources: 15
   audioSourceModel: {fileID: 1942341376}
   backgroundMusic: {fileID: 1140384915}
   droneSound: {fileID: 1971254579}
@@ -3404,6 +3487,7 @@ Transform:
   m_Children:
   - {fileID: 586610705}
   - {fileID: 963194228}
+  - {fileID: 371684133}
   m_Father: {fileID: 1800351618}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3884,7 +3968,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 50
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -3909,14 +3993,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -6}
+  m_LocalRotation: {x: 0.08715578, y: 0, z: 0, w: 0.9961947}
+  m_LocalPosition: {x: 0, y: 1, z: -6}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 839521005}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 10, y: 0, z: 0}
 --- !u!1 &977791030
 GameObject:
   m_ObjectHideFlags: 0
@@ -6453,12 +6537,24 @@ MonoBehaviour:
   doNotDestroyGameObjectOnLoad: 0
   droneContainer: {fileID: 839521005}
   droneTarget: {fileID: 586610705}
-  speed: 5
-  generateNSections: 10
-  deliveryChance: 1
+  initialSpeed: 5
+  speedUpgrade: 0.25
+  milestones: 100
+  generateNSections: 25
+  deliveryChance: 0.05
+  ponctualChance: 0.75
+  hBarChance: 0.15
+  vBarChance: 0.15
   road: {fileID: 6429130103465119166, guid: 2a06bd3c04a42b24cafdf9c8b34e2b23, type: 3}
   deliveryStart: {fileID: 7320973641909864717, guid: 2ff3f541510458448bccb3df28e7c9e6, type: 3}
   deliveryEnd: {fileID: 7320973641909864717, guid: 8f7e70efa92a84246a777f2f78de60bd, type: 3}
+  balcony: {fileID: 3266502714296111589, guid: 227185d302ee8e947a9806b45a84a96e, type: 3}
+  bird: {fileID: 2131637403778373974, guid: a160beb775964684fb98815e9e99f868, type: 3}
+  drone: {fileID: 8747868684682301895, guid: 7ae3c170124e2af40bd228c9ff885588, type: 3}
+  droneDelivery: {fileID: 5485620484511120470, guid: e8f8282ffac9de047b0ca1a675529dc3, type: 3}
+  chair: {fileID: 2552729178111649079, guid: 253b33edf96da654b80218336673ee25, type: 3}
+  tree: {fileID: 735328443029900014, guid: 968496a7a88755649806e54c708707e7, type: 3}
+  bridge: {fileID: 0}
 --- !u!1 &1892601245
 GameObject:
   m_ObjectHideFlags: 0
