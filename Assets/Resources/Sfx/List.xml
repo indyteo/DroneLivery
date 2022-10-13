@@ -1,0 +1,9 @@
+<SFX_SETUP>
+    <SFX name="DeliverStart" volume="1" />
+    <SFX name="DeliverSuccess" volume="1" />
+    <SFX name="DeliverFailed" volume="1" />
+    <SFX name="Crash" volume="1" />
+    <SFX name="Start" volume="1" />
+    <SFX name="Bonus" volume="1" />
+    <SFX name="Click" volume="1" />
+</SFX_SETUP>
