@@ -18,7 +18,7 @@ public class LevelManager : Singleton<LevelManager> {
 	private bool _delivering;
 
 	private Vector3 start;
-	private float speed = 0.5f;
+	private float speed = 3f;
 	private Vector3 direction = Vector3.forward;
 	private Vector3 generatedUntil;
 	private List<GameObject> roads = new List<GameObject>();
@@ -68,9 +68,12 @@ public class LevelManager : Singleton<LevelManager> {
 		// Generate terrain
 		Vector3 nextGeneration = this.generatedUntil + this.direction * 3;
 		if ((this.droneContainer.position - nextGeneration).sqrMagnitude < (this.generateNSections * this.generateNSections * 9)) {
-			Instantiate(this.road, nextGeneration, Quaternion.identity);
+			this.roads.Add(Instantiate(this.road, nextGeneration, Quaternion.identity));
 			this.generatedUntil = nextGeneration;
+			this.DeleteBackedObject();
 		}
+		
+		
 	}
 
 	private void OnDestroy() {
@@ -102,4 +105,17 @@ public class LevelManager : Singleton<LevelManager> {
 	private void OnDroneCrashEvent(DroneCrashedEvent e) {
 		EventManager.Instance.Raise(new GameOverEvent(Mathf.RoundToInt(this.meters), this.delivered));
 	}
+
+	private bool IsBackObject(GameObject gameObject) {
+		return gameObject.transform.position.z+20 < this.droneTarget.position.z;
+	}
+
+	private void DeleteBackedObject() {
+		foreach (var o in this.roads) {
+			if (IsBackObject(o)) Destroy(o);
+		}
+		this.roads.RemoveAll(IsBackObject);
+	}
+	
+	
 }
