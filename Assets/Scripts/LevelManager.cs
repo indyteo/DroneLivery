@@ -26,7 +26,7 @@ public class LevelManager : Singleton<LevelManager> {
 	private Vector3 start;
 	private Vector3 direction = Vector3.forward;
 	private Vector3 generatedUntil;
-	private List<GameObject> roads = new List<GameObject>();
+	private List<GameObject> features = new List<GameObject>();
 
 	private static Quaternion TURN_AROUND_Y = Quaternion.AngleAxis(180, Vector3.up);
 
@@ -55,6 +55,7 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	protected override void Awake() {
+		this.DestroyAllBackObject();
 		base.Awake();
 		this.start = this.droneContainer.position;
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
@@ -75,17 +76,19 @@ public class LevelManager : Singleton<LevelManager> {
 		// Generate terrain
 		Vector3 nextGeneration = this.generatedUntil + this.direction * 3;
 		if ((this.droneContainer.position - nextGeneration).sqrMagnitude < (this.generateNSections * this.generateNSections * 9)) {
-			Instantiate(this.road, nextGeneration, this.droneContainer.rotation);
-			if (Random.value < this.deliveryChance) {
+			this.features.Add(Instantiate(this.road, nextGeneration, this.droneContainer.rotation));
+            if (Random.value < this.deliveryChance) {
 				GameObject model = this.delivering ? this.deliveryEnd : this.deliveryStart;
 				int y = Random.Range(1, 5);
 				bool left = Random.value < 0.5;
 				int x = left ? -1 : 1;
 				Quaternion rotation = left ? TURN_AROUND_Y : Quaternion.identity;
-				Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation * rotation);
+				this.features.Add(Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation * rotation));
 			}
 			this.generatedUntil = nextGeneration;
 		}
+		
+		this.DeleteBackObject();
 	}
 
 	private void OnDestroy() {
@@ -96,6 +99,7 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	private void OnGamePlay(GamePlayEvent e) {
+		this.generatedUntil = Vector3.zero;
 		this.Crashing = false;
 		this.meters = 0;
 		this.delivered = 0;
@@ -119,5 +123,27 @@ public class LevelManager : Singleton<LevelManager> {
 
 	private void OnDroneCrashEvent(DroneCrashedEvent e) {
 		EventManager.Instance.Raise(new GameOverEvent(Mathf.RoundToInt(this.meters), this.delivered));
+	}
+
+	private bool IsBackObject(GameObject gameObject) {
+		return gameObject.transform.position.z+10 < this.droneTarget.position.z;
+	}
+
+	private void DeleteBackObject() {
+		foreach (var o in this.features) {
+			if (IsBackObject(o)) Destroy(o);
+		}
+		this.features.RemoveAll(IsBackObject);
+	}
+
+	private void DestroyAllBackObject()
+	{
+		foreach (var o in this.features)
+		{
+			Destroy(o);
+		}
+
+		this.features.Clear();
+		this.generatedUntil = Vector3.zero;
 	}
 }

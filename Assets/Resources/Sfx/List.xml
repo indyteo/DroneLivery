@@ -2,8 +2,8 @@
     <SFX name="DeliverStart" volume="1" />
     <SFX name="DeliverSuccess" volume="1" />
     <SFX name="DeliverFailed" volume="1" />
-    <SFX name="Crash" volume="0.5" />
-    <SFX name="Start" volume="0.1" />
+    <SFX name="Crash" volume="0.3" />
+    <SFX name="Start" volume="0.05" />
     <SFX name="Bonus" volume="1" />
     <SFX name="Click" volume="1" />
 </SFX_SETUP>
