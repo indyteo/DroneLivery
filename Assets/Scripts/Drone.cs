@@ -12,10 +12,8 @@ public class Drone : MonoBehaviour {
 	public bool CanMove { get; set; } = true;
 
 	public new Rigidbody rigidbody { get; private set; }
-	//public new CapsuleCollider collider { get; private set; }
 
 	private static readonly float MOVE_EPSILON = 0.0001f;
-	//private static readonly float ROTATION_EPSILON = 0.001f;
 	public static float Sensitivity { get; set; } = 1;
 
 	private void Crash() {
@@ -26,7 +24,6 @@ public class Drone : MonoBehaviour {
 
 	private void Awake() {
 		this.rigidbody = this.GetComponent<Rigidbody>();
-		//this.collider = this.GetComponent<CapsuleCollider>();
 		EventManager.Instance.AddListener<DroneSpawnedEvent>(this.OnDroneSpawned);
 		EventManager.Instance.AddListener<GameAbortedEvent>(this.OnGameAborted);
 	}
@@ -58,27 +55,16 @@ public class Drone : MonoBehaviour {
 		this.target.position = nextTargetPos;
 
 		// Calculate move & rotation
-		Vector3 moveToTarget = this.target.position - this.rigidbody.position;
+		Vector3 moveToTarget = nextTargetPos - this.transform.position;
 		Vector3 moveVect = Time.fixedDeltaTime * (this.CanMove ? this.moveSpeed : 0) * Vector3.ProjectOnPlane(moveToTarget, Vector3.forward).normalized;
-		if (moveVect.sqrMagnitude > moveToTarget.sqrMagnitude)
+		if (moveVect.magnitude > moveToTarget.magnitude)
 			moveVect = moveToTarget;
-		//float yRot = Time.fixedDeltaTime * this.rotationSpeed * 30 * mouseXInput;
-		//if (yRot < ROTATION_EPSILON && yRot > -ROTATION_EPSILON)
-		//	yRot = 0;
-		//Quaternion qRot = Quaternion.AngleAxis(yRot, this.transform.up);
-		//Quaternion qRotUpright = Quaternion.FromToRotation(this.transform.up, Vector3.up);
-		//Quaternion qOrientSlightlyUpright = Quaternion.Slerp(this.transform.rotation, qRotUpright * this.transform.rotation, this.yRecoveryStrengh * Time.fixedDeltaTime);
 
 		// Apply them
 		this.transform.position += moveVect;
-		//this.rigidbody.MovePosition(this.rigidbody.position + moveVect);
-		//this.rigidbody.MoveRotation(qRot * qOrientSlightlyUpright);
-		//this.rigidbody.angularVelocity = Vector3.zero;
 
 		// Sound
-		
-		SfxManager.Instance.SetDroneFly(moveVect.sqrMagnitude > MOVE_EPSILON);
-		Debug.Log(moveVect.sqrMagnitude > MOVE_EPSILON);
+		SfxManager.Instance.SetDroneFly(moveVect.magnitude > MOVE_EPSILON);
 	}
 
 	private void OnDroneSpawned(DroneSpawnedEvent e) {
