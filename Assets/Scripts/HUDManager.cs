@@ -11,7 +11,30 @@ public class HUDManager : MonoBehaviour {
 	[SerializeField] private GameObject deliveringIndicator;
 	[Header("Timer")]
 	[SerializeField] private Text timerText;
+	[SerializeField] private Text scoreInGameText;
 
+
+	private int _delivered;
+	private int _meters;
+
+	private int delivered {
+		get => this._delivered;
+		set {
+			this._delivered = value;
+			this.deliveredText.text = value.ToString();
+			this.UpdateScoreInGame();
+		}
+	}
+	
+	private int meters {
+		get => this._meters;
+		set {
+			this._meters = value;
+			this.metersText.text = value.ToString();
+			this.UpdateScoreInGame();
+		}
+	}
+	
 	private float start;
 
 	private void Awake() {
@@ -36,7 +59,7 @@ public class HUDManager : MonoBehaviour {
 	}
 
 	private void UpdateTimer() {
-		this.timerText.text = new TimeSpan(0, 0, Mathf.CeilToInt(Time.time - this.start)).ToString("hh'h 'mm'm 'ss's'");
+		this.timerText.text = new TimeSpan(0, 0, Mathf.CeilToInt(Time.time - this.start)).ToString("hh':'mm':'ss");
 	}
 
 	private void OnGamePlay(GamePlayEvent e) {
@@ -48,10 +71,14 @@ public class HUDManager : MonoBehaviour {
 	}
 
 	private void OnDeliveredUpdated(DeliveredUpdatedEvent e) {
-		this.deliveredText.text = e.Delivered.ToString();
+		this.delivered = e.Delivered;
 	}
 
 	private void OnDeliveringUpdated(DeliveringUpdatedEvent e) {
 		this.deliveringIndicator.SetActive(e.Delivering);
+	}
+
+	private void UpdateScoreInGame() {
+		this.scoreInGameText.text = "Score " + GameManager.ComputeScore(this.delivered, this.meters);
 	}
 }
