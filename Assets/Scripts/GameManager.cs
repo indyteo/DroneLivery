@@ -31,7 +31,7 @@ public class GameManager : Singleton<GameManager> {
 	[SerializeField] private Button resumeButton;
 	[SerializeField] private Button restartButton;
 	[SerializeField] private Button menuButton;
-
+	
 	private GameState gameState;
 
 	public int HighScore {
@@ -190,5 +190,9 @@ public class GameManager : Singleton<GameManager> {
 	public static void UnlockCursor() {
 		Cursor.lockState = CursorLockMode.None;
 		Cursor.visible = true;
+	}
+
+	public static int ComputeScore(int package, int meter) {
+		return (package * 10) + meter;
 	}
 }
