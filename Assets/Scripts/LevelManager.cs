@@ -17,6 +17,8 @@ public class LevelManager : Singleton<LevelManager> {
 	[SerializeField] private GameObject deliveryStart;
 	[SerializeField] private GameObject deliveryEnd;
 
+	private int layerDelivery;
+	private int layerDeposit;
 	public bool Crashing { get; set; }
 
 	private float _meters;
@@ -50,6 +52,11 @@ public class LevelManager : Singleton<LevelManager> {
 		get => this._delivering;
 		set {
 			this._delivering = value;
+			Camera cam = Camera.main;
+			if (value)
+				cam.cullingMask = (cam.cullingMask & ~this.layerDelivery) | this.layerDeposit;
+			else
+				cam.cullingMask = (cam.cullingMask & ~this.layerDeposit) | this.layerDelivery;
 			EventManager.Instance.Raise(new DeliveringUpdatedEvent(value));
 		}
 	}
@@ -57,6 +64,8 @@ public class LevelManager : Singleton<LevelManager> {
 	protected override void Awake() {
 		base.Awake();
 		this.start = this.droneContainer.position;
+		this.layerDelivery = 1 << LayerMask.NameToLayer("Delivery");
+		this.layerDeposit = 1 << LayerMask.NameToLayer("Deposit");
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
 		EventManager.Instance.AddListener<DeliverEvent>(this.OnDeliver);
