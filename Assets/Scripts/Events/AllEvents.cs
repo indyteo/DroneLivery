@@ -1,4 +1,6 @@
-﻿namespace Events {
+﻿using UnityEngine;
+
+namespace Events {
 	#region Game Events
 
 	public class GamePlayEvent : Event {}
@@ -15,7 +17,13 @@
 
 	#region Drone Events
 
-	public class DroneSpawnedEvent : Event {}
+	public class DroneSpawnedEvent : Event {
+		public Transform Target { get; private set; }
+
+		public DroneSpawnedEvent(Transform target) {
+			this.Target = target;
+		}
+	}
 
 	public class DroneCrashedEvent : Event {}
 

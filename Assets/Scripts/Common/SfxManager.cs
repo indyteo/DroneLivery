@@ -30,7 +30,7 @@ namespace Common {
 		[SerializeField] private AudioSource backgroundMusic;
 		[SerializeField] private AudioSource droneSound;
 		[SerializeField] private float droneVolume = 0.075f;
-		[SerializeField] private float droneFlyVolume = 0.15f;
+		[SerializeField] private float droneFlyVolume = 0.25f;
 
 		private readonly List<AudioSource> audioSources = new List<AudioSource>();
 		private readonly Dictionary<string, MyAudioClip> dicoAudioClips = new Dictionary<string, MyAudioClip>();
@@ -98,18 +98,30 @@ namespace Common {
 			this.backgroundMusic.Pause();
 		}
 
+		public void ResumeBackgroundMusic() {
+			this.backgroundMusic.UnPause();
+		}
+
 		public void StopBackgroundMusic() {
 			this.backgroundMusic.Stop();
 		}
 
 		public void StartDroneSound() {
-			this.PlaySfx2D("DroneStart");
+			this.PlaySfx2D("Start");
 			this.droneSound.PlayDelayed(3);
 			this.droneSound.volume = this.droneVolume;
 		}
 
 		public void SetDroneFly(bool flying) {
 			this.droneSound.volume = flying ? this.droneFlyVolume : this.droneVolume;
+		}
+
+		public void HaltDroneSound() {
+			this.droneSound.Pause();
+		}
+
+		public void ResumeDroneSound() {
+			this.droneSound.UnPause();
 		}
 
 		public void StopDroneSound() {
