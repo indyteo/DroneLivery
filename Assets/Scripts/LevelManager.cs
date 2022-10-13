@@ -2,14 +2,20 @@
 using Common;
 using Events;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class LevelManager : Singleton<LevelManager> {
 	[Header("LevelManager")]
 	[SerializeField] private Transform droneContainer;
 	[SerializeField] private Transform droneTarget;
+	[SerializeField] private float speed = 0.5f;
 	[SerializeField] private int generateNSections = 10;
-
+	[Header("Features Generation Chance")]
+	[SerializeField] private float deliveryChance = 0.01f;
+	[Header("Features")]
 	[SerializeField] private GameObject road;
+	[SerializeField] private GameObject deliveryStart;
+	[SerializeField] private GameObject deliveryEnd;
 
 	public bool Crashing { get; set; }
 
@@ -18,10 +24,11 @@ public class LevelManager : Singleton<LevelManager> {
 	private bool _delivering;
 
 	private Vector3 start;
-	private float speed = 0.5f;
 	private Vector3 direction = Vector3.forward;
 	private Vector3 generatedUntil;
 	private List<GameObject> roads = new List<GameObject>();
+
+	private static Quaternion TURN_AROUND_Y = Quaternion.AngleAxis(180, Vector3.up);
 
 	private float meters {
 		get => this._meters;
@@ -68,7 +75,15 @@ public class LevelManager : Singleton<LevelManager> {
 		// Generate terrain
 		Vector3 nextGeneration = this.generatedUntil + this.direction * 3;
 		if ((this.droneContainer.position - nextGeneration).sqrMagnitude < (this.generateNSections * this.generateNSections * 9)) {
-			Instantiate(this.road, nextGeneration, Quaternion.identity);
+			Instantiate(this.road, nextGeneration, this.droneContainer.rotation);
+			if (Random.value < this.deliveryChance) {
+				GameObject model = this.delivering ? this.deliveryEnd : this.deliveryStart;
+				int y = Random.Range(1, 5);
+				bool left = Random.value < 0.5;
+				int x = left ? -1 : 1;
+				Quaternion rotation = left ? TURN_AROUND_Y : Quaternion.identity;
+				Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation * rotation);
+			}
 			this.generatedUntil = nextGeneration;
 		}
 	}
@@ -90,6 +105,9 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	private void OnDeliverStart(DeliverStartEvent e) {
+		if (this.delivering)
+			return;
+		e.CanTake = true;
 		this.delivering = true;
 	}
 
