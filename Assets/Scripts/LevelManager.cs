@@ -48,6 +48,7 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	protected override void Awake() {
+		this.DestroyAllBackObject();
 		base.Awake();
 		this.start = this.droneContainer.position;
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
@@ -70,10 +71,9 @@ public class LevelManager : Singleton<LevelManager> {
 		if ((this.droneContainer.position - nextGeneration).sqrMagnitude < (this.generateNSections * this.generateNSections * 9)) {
 			this.roads.Add(Instantiate(this.road, nextGeneration, Quaternion.identity));
 			this.generatedUntil = nextGeneration;
-			this.DeleteBackedObject();
 		}
 		
-		
+		this.DeleteBackObject();
 	}
 
 	private void OnDestroy() {
@@ -84,6 +84,7 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	private void OnGamePlay(GamePlayEvent e) {
+		this.generatedUntil = Vector3.zero;
 		this.Crashing = false;
 		this.meters = 0;
 		this.delivered = 0;
@@ -107,15 +108,24 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	private bool IsBackObject(GameObject gameObject) {
-		return gameObject.transform.position.z+20 < this.droneTarget.position.z;
+		return gameObject.transform.position.z+10 < this.droneTarget.position.z;
 	}
 
-	private void DeleteBackedObject() {
+	private void DeleteBackObject() {
 		foreach (var o in this.roads) {
 			if (IsBackObject(o)) Destroy(o);
 		}
 		this.roads.RemoveAll(IsBackObject);
 	}
-	
-	
+
+	private void DestroyAllBackObject()
+	{
+		foreach (var o in this.roads)
+		{
+			Destroy(o);
+		}
+
+		this.roads.Clear();
+		this.generatedUntil = Vector3.zero;
+	}
 }
