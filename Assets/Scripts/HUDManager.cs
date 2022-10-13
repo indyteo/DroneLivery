@@ -6,16 +6,16 @@ using UnityEngine.UI;
 
 public class HUDManager : MonoBehaviour {
 	[Header("Parkour & Delivering info")]
+	[SerializeField] private Text scoreInGameText;
 	[SerializeField] private Text metersText;
 	[SerializeField] private Text deliveredText;
 	[SerializeField] private GameObject deliveringIndicator;
 	[Header("Timer")]
 	[SerializeField] private Text timerText;
-	[SerializeField] private Text scoreInGameText;
-
 
 	private int _delivered;
 	private int _meters;
+	private float start;
 
 	private int delivered {
 		get => this._delivered;
@@ -34,8 +34,6 @@ public class HUDManager : MonoBehaviour {
 			this.UpdateScoreInGame();
 		}
 	}
-	
-	private float start;
 
 	private void Awake() {
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
@@ -67,7 +65,7 @@ public class HUDManager : MonoBehaviour {
 	}
 
 	private void OnMetersUpdated(MetersUpdatedEvent e) {
-		this.metersText.text = e.Meters.ToString();
+		this.meters = e.Meters;
 	}
 
 	private void OnDeliveredUpdated(DeliveredUpdatedEvent e) {
@@ -79,6 +77,6 @@ public class HUDManager : MonoBehaviour {
 	}
 
 	private void UpdateScoreInGame() {
-		this.scoreInGameText.text = "Score " + GameManager.ComputeScore(this.delivered, this.meters);
+		this.scoreInGameText.text = "Score " + GameManager.ComputeScore(this.meters, this.delivered);
 	}
 }
