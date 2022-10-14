@@ -80,6 +80,9 @@ public class GameManager : Singleton<GameManager> {
 			else if (this.gameState == GameState.End)
 				this.Menu();
 		}
+
+		if (Input.GetButtonDown("Jump") && this.gameState == GameState.Pause)
+			this.pauseOverlay.SetActive(!this.pauseOverlay.activeSelf);
 	}
 
 	private void OnDestroy() {

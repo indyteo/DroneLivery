@@ -4,30 +4,31 @@ using UnityEngine;
 
 public class Drone : MonoBehaviour {
 	[SerializeField] private float moveSpeed = 1.5f;
+	[SerializeField] private float rotationSpeed = 100f;
+	[SerializeField] private GameObject deliveryModel;
 
 	private bool spawned;
 	private Transform target;
+	private GameObject delivery;
 
 	public bool TargetLocked { get; set; }
 	public bool CanMove { get; set; } = true;
 
 	public new Rigidbody rigidbody { get; private set; }
-	//public new CapsuleCollider collider { get; private set; }
 
 	private static readonly float MOVE_EPSILON = 0.0001f;
-	//private static readonly float ROTATION_EPSILON = 0.001f;
 	public static float Sensitivity { get; set; } = 1;
 
 	private void Crash() {
-		SfxManager.Instance.StopDroneSound();
 		EventManager.Instance.Raise(new DroneCrashedEvent());
 		DestroyImmediate(this.gameObject);
 	}
 
 	private void Awake() {
 		this.rigidbody = this.GetComponent<Rigidbody>();
-		//this.collider = this.GetComponent<CapsuleCollider>();
 		EventManager.Instance.AddListener<DroneSpawnedEvent>(this.OnDroneSpawned);
+		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
+		EventManager.Instance.AddListener<DeliverEndEvent>(this.OnDeliverEnd);
 		EventManager.Instance.AddListener<GameAbortedEvent>(this.OnGameAborted);
 	}
 
@@ -37,6 +38,8 @@ public class Drone : MonoBehaviour {
 
 	protected virtual void OnDestroy() {
 		EventManager.Instance.RemoveListener<DroneSpawnedEvent>(this.OnDroneSpawned);
+		EventManager.Instance.RemoveListener<DeliverStartEvent>(this.OnDeliverStart);
+		EventManager.Instance.RemoveListener<DeliverEndEvent>(this.OnDeliverEnd);
 		EventManager.Instance.RemoveListener<GameAbortedEvent>(this.OnGameAborted);
 	}
 
@@ -58,27 +61,29 @@ public class Drone : MonoBehaviour {
 		this.target.position = nextTargetPos;
 
 		// Calculate move & rotation
-		Vector3 moveToTarget = this.target.position - this.rigidbody.position;
-		Vector3 moveVect = Time.fixedDeltaTime * (this.CanMove ? this.moveSpeed : 0) * Vector3.ProjectOnPlane(moveToTarget, Vector3.forward).normalized;
-		if (moveVect.sqrMagnitude > moveToTarget.sqrMagnitude)
+		Vector3 moveToTarget = nextTargetPos - this.transform.position;
+		Vector3 moveVect = (this.CanMove ? Time.fixedDeltaTime * (this.moveSpeed + LevelManager.Instance.Speed * 0.2f) : 0) * Vector3.ProjectOnPlane(moveToTarget, Vector3.forward).normalized;
+		if (moveVect.magnitude > moveToTarget.magnitude)
 			moveVect = moveToTarget;
-		//float yRot = Time.fixedDeltaTime * this.rotationSpeed * 30 * mouseXInput;
-		//if (yRot < ROTATION_EPSILON && yRot > -ROTATION_EPSILON)
-		//	yRot = 0;
-		//Quaternion qRot = Quaternion.AngleAxis(yRot, this.transform.up);
-		//Quaternion qRotUpright = Quaternion.FromToRotation(this.transform.up, Vector3.up);
-		//Quaternion qOrientSlightlyUpright = Quaternion.Slerp(this.transform.rotation, qRotUpright * this.transform.rotation, this.yRecoveryStrengh * Time.fixedDeltaTime);
+
+		// Visual rotation from movement
+		float targetAngle = -15 * moveVect.x / Time.fixedDeltaTime;
+		float currentAngle = this.transform.localEulerAngles.z;
+		if (currentAngle > 180)
+			currentAngle -= 360;
+		float rotateToAngle = targetAngle - currentAngle;
+		float rotation = this.CanMove ? Mathf.Sign(rotateToAngle) * Time.fixedDeltaTime * this.rotationSpeed : 0;
+		rotation = Mathf.Clamp(rotation, -Mathf.Abs(rotateToAngle), Mathf.Abs(rotateToAngle));
+		float nextAngle = Mathf.Clamp(currentAngle + rotation, -45, 45);
+		if (nextAngle < 0)
+			nextAngle += 360;
 
 		// Apply them
 		this.transform.position += moveVect;
-		//this.rigidbody.MovePosition(this.rigidbody.position + moveVect);
-		//this.rigidbody.MoveRotation(qRot * qOrientSlightlyUpright);
-		//this.rigidbody.angularVelocity = Vector3.zero;
+		this.transform.localEulerAngles = new Vector3(0, 0, nextAngle);
 
 		// Sound
-		
-		SfxManager.Instance.SetDroneFly(moveVect.sqrMagnitude > MOVE_EPSILON);
-		Debug.Log(moveVect.sqrMagnitude > MOVE_EPSILON);
+		SfxManager.Instance.SetDroneFly(moveVect.magnitude > MOVE_EPSILON);
 	}
 
 	private void OnDroneSpawned(DroneSpawnedEvent e) {
@@ -90,8 +95,20 @@ public class Drone : MonoBehaviour {
 		this.spawned = true;
 	}
 
+	private void OnDeliverStart(DeliverStartEvent e) {
+		if (this.delivery == null)
+			this.delivery = Instantiate(this.deliveryModel, this.transform);
+	}
+
+	private void OnDeliverEnd(DeliverEndEvent e) {
+		if (this.delivery != null)
+			Destroy(this.delivery);
+	}
+
 	private void OnCollisionEnter(Collision collision) {
 		if (!collision.collider.isTrigger) {
+			Instantiate(Resources.Load<GameObject>("Crash"), collision.GetContact(0).point, Quaternion.identity, this.transform);
+			SfxManager.Instance.StopDroneSound();
 			SfxManager.Instance.PlaySfx2D("Crash");
 			this.CanMove = false;
 			this.TargetLocked = true;
