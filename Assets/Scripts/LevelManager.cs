@@ -30,11 +30,13 @@ public class LevelManager : Singleton<LevelManager> {
 	[SerializeField] private GameObject chair;
 	[SerializeField] private GameObject bridge;
 	[SerializeField] private GameObject tree;
+	[SerializeField] private GameObject banner;
 
 	private int layerDelivery;
 	private int layerDeposit;
 	public bool Move { get; set; }
 	public float Speed { get; private set; }
+	public bool FollowGPS => this.delivering;
 
 	private float _meters;
 	private int _delivered;
@@ -44,6 +46,7 @@ public class LevelManager : Singleton<LevelManager> {
 	private Vector3 direction = Vector3.forward;
 	private Vector3 generatedUntil;
 	private List<GameObject> features = new List<GameObject>();
+	private int canGenerateIntersection;
 
 	private static Quaternion TURN_AROUND_Y = Quaternion.AngleAxis(180, Vector3.up);
 
@@ -84,6 +87,7 @@ public class LevelManager : Singleton<LevelManager> {
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.AddListener<DeliveryTakeEvent>(this.OnDeliveryTake);
 		EventManager.Instance.AddListener<DeliveryDropEvent>(this.OnDeliveryDrop);
+		EventManager.Instance.AddListener<DeliverEndEvent>(this.OnDeliverEnd);
 		EventManager.Instance.AddListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
@@ -100,9 +104,12 @@ public class LevelManager : Singleton<LevelManager> {
 		// Generate terrain
 		Vector3 nextGeneration = this.generatedUntil + this.direction * 3;
 		if ((this.droneContainer.position - nextGeneration).sqrMagnitude < (this.generateNSections * this.generateNSections * 9)) {
-			GameObject roadModel = Random.value < this.intersectionChance ? this.intersection : this.road;
+			GameObject roadModel = this.canGenerateIntersection <= 0 && Random.value < this.intersectionChance ? this.intersection : this.road;
 			this.features.Add(Instantiate(roadModel, nextGeneration, this.droneContainer.rotation, this.transform));
+			if (roadModel == this.intersection)
+				this.canGenerateIntersection = 5;
 			if (roadModel == this.road) {
+				this.canGenerateIntersection--;
 				if (Random.value < this.deliveryChance) {
                 	GameObject model = this.delivering ? this.deliveryEnd : this.deliveryStart;
                 	int y = Random.Range(1, 5);
@@ -118,10 +125,12 @@ public class LevelManager : Singleton<LevelManager> {
                     this.features.Add(Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation * rotation, this.transform));
                 } else if (Random.value < this.vBarChance) {
                     int x = Random.Range(-1, 2);
-                    this.features.Add(Instantiate(this.tree, nextGeneration + x * this.droneContainer.right, this.droneContainer.rotation, this.transform));
-                //} else if (Random.value < this.hBarChance) {
-				//	int y = Random.Range(1, 6);
-				//	this.features.Add(Instantiate(this.bridge, nextGeneration + y * Vector3.up, this.droneContainer.rotation, this.transform));
+                    int y = x == 0 ? 0 : Random.Range(0, 3);
+                    GameObject model = y == 0 ? this.tree : this.banner;
+                    this.features.Add(Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation, this.transform));
+                } else if (Random.value < this.hBarChance) {
+					int y = Random.Range(1, 6);
+					this.features.Add(Instantiate(this.bridge, nextGeneration + y * Vector3.up, this.droneContainer.rotation, this.transform));
 				}
 			}
 			this.generatedUntil = nextGeneration;
@@ -134,6 +143,7 @@ public class LevelManager : Singleton<LevelManager> {
 		EventManager.Instance.RemoveListener<GamePlayEvent>(this.OnGamePlay);
 		EventManager.Instance.RemoveListener<DeliveryTakeEvent>(this.OnDeliveryTake);
 		EventManager.Instance.RemoveListener<DeliveryDropEvent>(this.OnDeliveryDrop);
+		EventManager.Instance.RemoveListener<DeliverEndEvent>(this.OnDeliverEnd);
 		EventManager.Instance.RemoveListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
@@ -143,6 +153,8 @@ public class LevelManager : Singleton<LevelManager> {
 		this.delivered = 0;
 		this.delivering = false;
 		this.droneContainer.position = this.start;
+		this.direction = Vector3.forward;
+		this.droneContainer.rotation = Quaternion.identity;
 		this.DestroyAllFeatures();
 		Instantiate(Resources.Load<GameObject>("Drone"), this.droneContainer);
 		EventManager.Instance.Raise(new DroneSpawnedEvent(this.droneTarget));
@@ -157,11 +169,13 @@ public class LevelManager : Singleton<LevelManager> {
 	}
 
 	private void OnDeliveryDrop(DeliveryDropEvent e) {
-		if (this.delivering) {
-			this.delivering = false;
+		e.CanDrop = this.delivering;
+	}
+
+	private void OnDeliverEnd(DeliverEndEvent e) {
+		this.delivering = false;
+		if (e.Success)
 			this.delivered++;
-			e.CanDrop = true;
-		}
 	}
 
 	private void OnDroneCrashEvent(DroneCrashedEvent e) {
@@ -183,13 +197,14 @@ public class LevelManager : Singleton<LevelManager> {
 		foreach (var o in this.features)
 			Destroy(o);
 		this.features.Clear();
-		this.generatedUntil = Vector3.zero;
+		this.generatedUntil = 7 * this.direction;
 	}
 
 	public void Rotate(Quaternion rotation, Vector3 position) {
 		this.direction = rotation * this.direction;
 		this.droneContainer.position = position;
 		this.droneContainer.rotation *= rotation;
-		this.generatedUntil = this.droneContainer.position - 3 * Vector3.up + 3 * this.direction;
+		this.generatedUntil = this.droneContainer.position - 3 * Vector3.up + 4 * this.direction;
+		this.canGenerateIntersection = 5;
 	}
 }

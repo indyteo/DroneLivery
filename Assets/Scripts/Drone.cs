@@ -49,7 +49,7 @@ public class Drone : MonoBehaviour {
 
 		// Intersection
 		float hInput = this.CanMove ? Input.GetAxis("Horizontal") * Drone.Sensitivity : 0;
-		if (Intersection.CanTurn) {
+		if (Intersection.CanTurn(this)) {
 			if (hInput < -0.5)
 				Intersection.Turn(this, true);
 			else if (hInput > 0.5)

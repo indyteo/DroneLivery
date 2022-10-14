@@ -1,23 +1,45 @@
 ﻿using System.Collections;
+using Common;
+using Events;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class Intersection : MonoBehaviour {
+	[SerializeField] private Collider turn;
+	private int used;
+	private int direction;
+
 	private static Intersection Instance;
-	public static bool CanTurn => Instance != null;
+
+	private void Awake() {
+		this.direction = Random.Range(-1, 2);
+	}
 
 	private void OnTriggerEnter(Collider other) {
 		Instance = this;
+		if (LevelManager.Instance.FollowGPS)
+			EventManager.Instance.Raise(new GPSUpdatedEvent(this.direction));
 	}
 
 	private void OnTriggerExit(Collider other) {
 		Instance = null;
+		EventManager.Instance.Raise(new GPSUpdatedEvent());
+		if (LevelManager.Instance.FollowGPS && this.used != this.direction) {
+			EventManager.Instance.Raise(new DeliverEndEvent(false));
+			SfxManager.Instance.PlaySfx2D("DeliverFailed");
+		}
+	}
+
+	public static bool CanTurn(Drone drone) {
+		return Instance != null && Instance.used == 0 && Instance.turn.bounds.Contains(drone.transform.position);
 	}
 
 	public static void Turn(Drone drone, bool left) {
-		if (!CanTurn)
+		if (!CanTurn(drone))
 			return;
 		Quaternion rotation = left ? Quaternion.AngleAxis(-3, Vector3.up) : Quaternion.AngleAxis(3, Vector3.up);
 		Instance.StartCoroutine(TurnAnimation(drone, rotation));
+		Instance.used = left ? -1 : 1;
 		Instance = null;
 	}
 

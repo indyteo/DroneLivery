@@ -81,5 +81,13 @@ namespace Events {
 		}
 	}
 
+	public class GPSUpdatedEvent : Event {
+		public int Direction { get; private set; }
+
+		public GPSUpdatedEvent(int direction = 2) {
+			this.Direction = direction;
+		}
+	}
+
 	#endregion
 }

@@ -12,6 +12,10 @@ public class HUDManager : MonoBehaviour {
 	[SerializeField] private GameObject deliveringIndicator;
 	[Header("Timer")]
 	[SerializeField] private Text timerText;
+	[Header("GPS")]
+	[SerializeField] private GameObject left;
+	[SerializeField] private GameObject center;
+	[SerializeField] private GameObject right;
 
 	private int _delivered;
 	private int _meters;
@@ -40,6 +44,7 @@ public class HUDManager : MonoBehaviour {
 		EventManager.Instance.AddListener<MetersUpdatedEvent>(this.OnMetersUpdated);
 		EventManager.Instance.AddListener<DeliveredUpdatedEvent>(this.OnDeliveredUpdated);
 		EventManager.Instance.AddListener<DeliveringUpdatedEvent>(this.OnDeliveringUpdated);
+		EventManager.Instance.AddListener<GPSUpdatedEvent>(this.OnGPSUpdated);
 	}
 
 	private IEnumerator Start() {
@@ -54,6 +59,7 @@ public class HUDManager : MonoBehaviour {
 		EventManager.Instance.RemoveListener<MetersUpdatedEvent>(this.OnMetersUpdated);
 		EventManager.Instance.RemoveListener<DeliveredUpdatedEvent>(this.OnDeliveredUpdated);
 		EventManager.Instance.RemoveListener<DeliveringUpdatedEvent>(this.OnDeliveringUpdated);
+		EventManager.Instance.RemoveListener<GPSUpdatedEvent>(this.OnGPSUpdated);
 	}
 
 	private void UpdateTimer() {
@@ -74,6 +80,23 @@ public class HUDManager : MonoBehaviour {
 
 	private void OnDeliveringUpdated(DeliveringUpdatedEvent e) {
 		this.deliveringIndicator.SetActive(e.Delivering);
+	}
+
+	private void OnGPSUpdated(GPSUpdatedEvent e) {
+		this.left.SetActive(false);
+		this.center.SetActive(false);
+		this.right.SetActive(false);
+		switch (e.Direction) {
+		case -1:
+			this.left.SetActive(true);
+			break;
+		case 0:
+			this.center.SetActive(true);
+			break;
+		case 1:
+			this.right.SetActive(true);
+			break;
+		}
 	}
 
 	private void UpdateScoreInGame() {
