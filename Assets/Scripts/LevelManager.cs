@@ -155,6 +155,7 @@ public class LevelManager : Singleton<LevelManager> {
 		this.droneContainer.position = this.start;
 		this.direction = Vector3.forward;
 		this.droneContainer.rotation = Quaternion.identity;
+		EventManager.Instance.Raise(new GPSUpdatedEvent());
 		this.DestroyAllFeatures();
 		Instantiate(Resources.Load<GameObject>("Drone"), this.droneContainer);
 		EventManager.Instance.Raise(new DroneSpawnedEvent(this.droneTarget));

@@ -13,6 +13,11 @@ public class Intersection : MonoBehaviour {
 
 	private void Awake() {
 		this.direction = Random.Range(-1, 2);
+		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
+	}
+
+	private void OnDestroy() {
+		EventManager.Instance.RemoveListener<DeliverStartEvent>(this.OnDeliverStart);
 	}
 
 	private void OnTriggerEnter(Collider other) {
@@ -28,6 +33,13 @@ public class Intersection : MonoBehaviour {
 			EventManager.Instance.Raise(new DeliverEndEvent(false));
 			SfxManager.Instance.PlaySfx2D("DeliverFailed");
 		}
+	}
+
+	private void OnDeliverStart(DeliverStartEvent e) {
+		Drone drone = FindObjectOfType<Drone>();
+		Collider col = this.GetComponent<Collider>();
+		if (col.bounds.Contains(drone.transform.position))
+			EventManager.Instance.Raise(new GPSUpdatedEvent(this.direction));
 	}
 
 	public static bool CanTurn(Drone drone) {
