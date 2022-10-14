@@ -6615,14 +6615,16 @@ MonoBehaviour:
   droneContainer: {fileID: 839521005}
   droneTarget: {fileID: 586610705}
   initialSpeed: 5
-  speedUpgrade: 0.25
+  speedUpgrade: 0.5
   milestones: 100
   generateNSections: 25
+  intersectionChance: 0.05
   deliveryChance: 0.05
   ponctualChance: 0.75
   hBarChance: 0.15
   vBarChance: 0.15
   road: {fileID: 6429130103465119166, guid: 2a06bd3c04a42b24cafdf9c8b34e2b23, type: 3}
+  intersection: {fileID: 6429130103465119166, guid: 505f1cac9c5fdc94da65d488288db03d, type: 3}
   deliveryStart: {fileID: 7320973641909864717, guid: 2ff3f541510458448bccb3df28e7c9e6, type: 3}
   deliveryEnd: {fileID: 7320973641909864717, guid: 8f7e70efa92a84246a777f2f78de60bd, type: 3}
   balcony: {fileID: 3266502714296111589, guid: 227185d302ee8e947a9806b45a84a96e, type: 3}
@@ -6630,8 +6632,8 @@ MonoBehaviour:
   drone: {fileID: 8747868684682301895, guid: 7ae3c170124e2af40bd228c9ff885588, type: 3}
   droneDelivery: {fileID: 5485620484511120470, guid: e8f8282ffac9de047b0ca1a675529dc3, type: 3}
   chair: {fileID: 2552729178111649079, guid: 253b33edf96da654b80218336673ee25, type: 3}
-  tree: {fileID: 735328443029900014, guid: b9c937be049749f45b1506c2121e849b, type: 3}
   bridge: {fileID: 0}
+  tree: {fileID: 735328443029900014, guid: b9c937be049749f45b1506c2121e849b, type: 3}
 --- !u!1 &1892601245
 GameObject:
   m_ObjectHideFlags: 0

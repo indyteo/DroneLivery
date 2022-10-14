@@ -47,21 +47,28 @@ public class Drone : MonoBehaviour {
 		if (!this.spawned)
 			return;
 
+		// Intersection
+		float hInput = this.CanMove ? Input.GetAxis("Horizontal") * Drone.Sensitivity : 0;
+		if (Intersection.CanTurn) {
+			if (hInput < -0.5)
+				Intersection.Turn(this, true);
+			else if (hInput > 0.5)
+				Intersection.Turn(this, false);
+		}
+
 		// Get player & controls status
-		//float vInput = this.CanMove ? Input.GetAxis("Vertical") * Drone.Sensitivity : 0;
-		//float hInput = this.CanMove ? Input.GetAxis("Horizontal") * Drone.Sensitivity : 0;
 		float mouseXInput = this.TargetLocked ? 0 : Input.GetAxisRaw("Mouse X") * Drone.Sensitivity;
 		float mouseYInput = this.TargetLocked ? 0 : Input.GetAxisRaw("Mouse Y") * Drone.Sensitivity;
 
 		// Move target
 		Vector3 targetMoveVect = Time.fixedDeltaTime * 25 * new Vector3(mouseXInput, mouseYInput, 0);
-		Vector3 nextTargetPos = this.target.position + targetMoveVect;
+		Vector3 nextTargetPos = this.target.localPosition + targetMoveVect;
 		nextTargetPos.x = Mathf.Clamp(nextTargetPos.x, -1.5f, 1.5f);
-		nextTargetPos.y = Mathf.Clamp(nextTargetPos.y, 0, 6f);
-		this.target.position = nextTargetPos;
+		nextTargetPos.y = Mathf.Clamp(nextTargetPos.y, -3, 3);
+		this.target.localPosition = nextTargetPos;
 
 		// Calculate move & rotation
-		Vector3 moveToTarget = nextTargetPos - this.transform.position;
+		Vector3 moveToTarget = nextTargetPos - this.transform.localPosition;
 		Vector3 moveVect = (this.CanMove ? Time.fixedDeltaTime * (this.moveSpeed + LevelManager.Instance.Speed * 0.2f) : 0) * Vector3.ProjectOnPlane(moveToTarget, Vector3.forward).normalized;
 		if (moveVect.magnitude > moveToTarget.magnitude)
 			moveVect = moveToTarget;
@@ -79,7 +86,7 @@ public class Drone : MonoBehaviour {
 			nextAngle += 360;
 
 		// Apply them
-		this.transform.position += moveVect;
+		this.transform.localPosition += moveVect;
 		this.transform.localEulerAngles = new Vector3(0, 0, nextAngle);
 
 		// Sound
@@ -112,7 +119,7 @@ public class Drone : MonoBehaviour {
 			SfxManager.Instance.PlaySfx2D("Crash");
 			this.CanMove = false;
 			this.TargetLocked = true;
-			LevelManager.Instance.Crashing = true;
+			LevelManager.Instance.Move = false;
 			this.Invoke("Crash", 3.5f);
 		}
 	}
