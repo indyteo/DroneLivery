@@ -1,6 +1,7 @@
 ﻿using Common;
 using Events;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public enum GameState {
@@ -109,6 +110,7 @@ public class GameManager : Singleton<GameManager> {
 		this.gameState = GameState.TitleScreen;
 		this.titleScreen.SetActive(true);
         this.endOverlay.SetActive(false);
+        EventSystem.current.SetSelectedGameObject(this.playButton.gameObject);
         Time.timeScale = 0;
         UnlockCursor();
 	}
@@ -132,6 +134,7 @@ public class GameManager : Singleton<GameManager> {
 		this.highScoreText.text = $"High Score {this.HighScore}";
 		this.newHighScore.SetActive(isNewHighScore);
 		this.endOverlay.SetActive(true);
+		EventSystem.current.SetSelectedGameObject(this.playAgainButton.gameObject);
 		Time.timeScale = 0;
 		UnlockCursor();
 		SfxManager.Instance.StopBackgroundMusic();
@@ -140,6 +143,7 @@ public class GameManager : Singleton<GameManager> {
 	private void Pause() {
 		this.gameState = GameState.Pause;
 		this.pauseOverlay.SetActive(true);
+		EventSystem.current.SetSelectedGameObject(this.resumeButton.gameObject);
 		Time.timeScale = 0;
 		UnlockCursor();
 		SfxManager.Instance.HaltBackgroundMusic();
