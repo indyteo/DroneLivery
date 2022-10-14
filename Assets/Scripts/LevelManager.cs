@@ -8,16 +8,31 @@ public class LevelManager : Singleton<LevelManager> {
 	[Header("LevelManager")]
 	[SerializeField] private Transform droneContainer;
 	[SerializeField] private Transform droneTarget;
-	[SerializeField] private float speed = 0.5f;
+	[SerializeField] private float initialSpeed = 1;
+	[SerializeField] private float speedUpgrade = 0.25f;
+	[SerializeField] private float milestones = 100;
 	[SerializeField] private int generateNSections = 10;
 	[Header("Features Generation Chance")]
 	[SerializeField] private float deliveryChance = 0.01f;
+	[SerializeField] private float ponctualChance = 0.15f;
+	[SerializeField] private float hBarChance = 0.05f;
+	[SerializeField] private float vBarChance = 0.05f;
 	[Header("Features")]
 	[SerializeField] private GameObject road;
 	[SerializeField] private GameObject deliveryStart;
 	[SerializeField] private GameObject deliveryEnd;
+	[SerializeField] private GameObject balcony;
+	[SerializeField] private GameObject bird;
+	[SerializeField] private GameObject drone;
+	[SerializeField] private GameObject droneDelivery;
+	[SerializeField] private GameObject chair;
+	[SerializeField] private GameObject tree;
+	[SerializeField] private GameObject bridge;
 
+	private int layerDelivery;
+	private int layerDeposit;
 	public bool Crashing { get; set; }
+	public float Speed { get; private set; }
 
 	private float _meters;
 	private int _delivered;
@@ -50,99 +65,117 @@ public class LevelManager : Singleton<LevelManager> {
 		get => this._delivering;
 		set {
 			this._delivering = value;
+			Camera cam = Camera.main;
+			if (value)
+				cam.cullingMask = (cam.cullingMask & ~this.layerDelivery) | this.layerDeposit;
+			else
+				cam.cullingMask = (cam.cullingMask & ~this.layerDeposit) | this.layerDelivery;
 			EventManager.Instance.Raise(new DeliveringUpdatedEvent(value));
 		}
 	}
 
 	protected override void Awake() {
-		this.DestroyAllBackObject();
 		base.Awake();
 		this.start = this.droneContainer.position;
+		this.layerDelivery = 1 << LayerMask.NameToLayer("Delivery");
+		this.layerDeposit = 1 << LayerMask.NameToLayer("Deposit");
 		EventManager.Instance.AddListener<GamePlayEvent>(this.OnGamePlay);
-		EventManager.Instance.AddListener<DeliverStartEvent>(this.OnDeliverStart);
-		EventManager.Instance.AddListener<DeliverEndEvent>(this.OnDeliverEnd);
+		EventManager.Instance.AddListener<DeliveryTakeEvent>(this.OnDeliveryTake);
+		EventManager.Instance.AddListener<DeliveryDropEvent>(this.OnDeliveryDrop);
 		EventManager.Instance.AddListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
 	private void Update() {
 		if (this.Crashing || !GameManager.Instance.IsPlaying)
 			return;
-		
+
 		// Move forward
-		Vector3 move = Time.deltaTime * this.speed * this.direction;
+		Vector3 move = Time.deltaTime * this.Speed * this.direction;
 		this.droneContainer.position += move;
 		this.meters += move.magnitude;
-		
+		this.Speed = this.initialSpeed + Mathf.Clamp(Mathf.Floor(this.meters / this.milestones) * this.speedUpgrade, 0, 2 * this.initialSpeed);
+
 		// Generate terrain
 		Vector3 nextGeneration = this.generatedUntil + this.direction * 3;
 		if ((this.droneContainer.position - nextGeneration).sqrMagnitude < (this.generateNSections * this.generateNSections * 9)) {
-			this.features.Add(Instantiate(this.road, nextGeneration, this.droneContainer.rotation));
+			this.features.Add(Instantiate(this.road, nextGeneration, this.droneContainer.rotation, this.transform));
             if (Random.value < this.deliveryChance) {
 				GameObject model = this.delivering ? this.deliveryEnd : this.deliveryStart;
 				int y = Random.Range(1, 5);
 				bool left = Random.value < 0.5;
 				int x = left ? -1 : 1;
 				Quaternion rotation = left ? TURN_AROUND_Y : Quaternion.identity;
-				this.features.Add(Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation * rotation));
+				this.features.Add(Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation * rotation, this.transform));
 			}
+            if (Random.value < this.ponctualChance) {
+	            int y = Random.Range(0, 6);
+	            int x = Random.Range(-1, 2);
+	            GameObject model = y == 0 ? this.chair : x != 0 && Random.value < 0.25 ? this.balcony : Random.value < 0.65 ? this.bird : Random.value < 0.35 ? this.droneDelivery : this.drone;
+	            Quaternion rotation = model == this.balcony && x == -1 ? TURN_AROUND_Y : Quaternion.identity;
+	            this.features.Add(Instantiate(model, nextGeneration + x * this.droneContainer.right + y * Vector3.up, this.droneContainer.rotation * rotation, this.transform));
+            }
+            if (Random.value < this.vBarChance) {
+	            int x = Random.Range(-1, 2);
+	            this.features.Add(Instantiate(this.tree, nextGeneration + x * this.droneContainer.right, this.droneContainer.rotation, this.transform));
+            }
 			this.generatedUntil = nextGeneration;
 		}
-		
+
 		this.DeleteBackObject();
 	}
 
 	private void OnDestroy() {
 		EventManager.Instance.RemoveListener<GamePlayEvent>(this.OnGamePlay);
-		EventManager.Instance.RemoveListener<DeliverStartEvent>(this.OnDeliverStart);
-		EventManager.Instance.RemoveListener<DeliverEndEvent>(this.OnDeliverEnd);
+		EventManager.Instance.RemoveListener<DeliveryTakeEvent>(this.OnDeliveryTake);
+		EventManager.Instance.RemoveListener<DeliveryDropEvent>(this.OnDeliveryDrop);
 		EventManager.Instance.RemoveListener<DroneCrashedEvent>(this.OnDroneCrashEvent);
 	}
 
 	private void OnGamePlay(GamePlayEvent e) {
-		this.generatedUntil = Vector3.zero;
 		this.Crashing = false;
+		this.Speed = this.initialSpeed;
 		this.meters = 0;
 		this.delivered = 0;
+		this.delivering = false;
 		this.droneContainer.position = this.start;
+		this.DestroyAllFeatures();
 		Instantiate(Resources.Load<GameObject>("Drone"), this.droneContainer);
 		EventManager.Instance.Raise(new DroneSpawnedEvent(this.droneTarget));
 	}
 
-	private void OnDeliverStart(DeliverStartEvent e) {
+	private void OnDeliveryTake(DeliveryTakeEvent e) {
 		if (this.delivering)
 			return;
 		e.CanTake = true;
 		this.delivering = true;
 	}
 
-	private void OnDeliverEnd(DeliverEndEvent e) {
-		this.delivering = false;
-		if (e.Success)
+	private void OnDeliveryDrop(DeliveryDropEvent e) {
+		if (this.delivering) {
+			this.delivering = false;
 			this.delivered++;
+			e.CanDrop = true;
+		}
 	}
 
 	private void OnDroneCrashEvent(DroneCrashedEvent e) {
 		EventManager.Instance.Raise(new GameOverEvent(Mathf.RoundToInt(this.meters), this.delivered));
 	}
 
-	private bool IsBackObject(GameObject gameObject) {
-		return gameObject.transform.position.z+10 < this.droneTarget.position.z;
+	private bool IsBackObject(GameObject obj) {
+		return Vector3.Dot(this.direction, obj.transform.position + 10 * this.direction - this.droneTarget.position) < 0;
 	}
 
 	private void DeleteBackObject() {
-		foreach (var o in this.features) {
-			if (IsBackObject(o)) Destroy(o);
-		}
+		foreach (var o in this.features)
+			if (IsBackObject(o))
+				Destroy(o);
 		this.features.RemoveAll(IsBackObject);
 	}
 
-	private void DestroyAllBackObject()
-	{
+	private void DestroyAllFeatures() {
 		foreach (var o in this.features)
-		{
 			Destroy(o);
-		}
-
 		this.features.Clear();
 		this.generatedUntil = Vector3.zero;
 	}
