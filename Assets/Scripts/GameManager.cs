@@ -212,6 +212,6 @@ public class GameManager : Singleton<GameManager> {
 	}
 
 	public static int ComputeScore(int meters, int delivered) {
-		return meters + 10 * delivered;
+		return meters + 250 * delivered;
 	}
 }
